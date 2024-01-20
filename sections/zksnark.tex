@@ -1,0 +1,112 @@
+\documentclass[UFT8]{beamer}
+\usepackage{tikz}
+\usetikzlibrary{arrows, positioning, shapes.geometric, arrows.meta}
+
+\mode<presentation> {
+	\usetheme{Frankfurt}
+	% or AnnArbor Antibes Bergen Berkeley Berlin Boadilla boxes CambridgeUS Copenhagen Darmstadt default Dresden Frankfurt Goettingen Hannover Ilmenau JuanLesPinsLuebeck Madrid Malmoe Marburg Montpellier PaloAlto Pittsburgh Rochester Singapore Szeged Warsaw
+	
+	\setbeamercovered{transparent}
+	% or whatever (possibly just delete it)
+}
+
+\usepackage{color}
+\usepackage{algorithm,algpseudocode}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{bbm}
+\usepackage{float}
+
+\usefonttheme[onlymath]{serif}
+
+% \documentclass[ppt.tex]{subfiles}
+\begin{document}
+
+\section{{ZK-SNARG}}
+
+\begin{frame}
+    \frametitle{Succinctness Non-interactive ARGument (SNARG)}
+    Given $\mathcal{C}, x$, $\exists w$ such that $\mathcal{C}(x, w) = 1$.
+    \begin{itemize}
+        \item $Setup(1^\lambda, \mathcal{C}, r) \rightarrow pp, vp$: Output parameters $pp, vp$ for prover and verifier respectively
+        \item $Prove(pp, x, w) \rightarrow \pi$: Generating proof $\pi$
+        \item $Verify(vp, x, \pi) \rightarrow 0/1$: Proof verification
+    \end{itemize}
+    \begin{definition}[Soundness]
+        If $x \notin \mathcal{L}(\mathcal{C})$, for any PPT prover $P^*$
+        \begin{equation*}
+            \Pr[\pi' \leftarrow P^*(pp, x): Verify(vp, x, \pi') = 1] \le \epsilon(\lambda)
+        \end{equation*}
+    \end{definition}
+
+    \begin{definition}[Succinctness]
+       Time complexity of $Verify(\cdot)$ is sublinear to $|\mathcal{C}|$ and $w$.
+    \end{definition}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{$Setup(1^\lambda, \mathcal{C}) \rightarrow pk, vk$}
+    \begin{itemize}
+        \item Trusted setup: $Setup(\mathcal{C}; r)$ random $r$ must be kept secret from prover
+        \item Updatable setup: trusted by universal setup: secret $r$ is independent of $\mathcal{C}$
+        \begin{equation*}
+            Setup = (S_{init}, S_{index}): S_{init}(\lambda; r) \rightarrow gp, S_{index}(gp, \mathcal{C}) = (pp, vp)
+        \end{equation*}
+        $gp$ is normally updatable.
+        \item Transparent setup: $Setup(\mathcal{C})$ does not use secret data
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Zero Knowledge}
+    \begin{definition}[Zero Knowledge, Groth16]
+        $Setup(R) \rightarrow (\sigma, \tau)$: The setup produce a common reference string $\sigma$ and a {\color{red}simulation trapdoor $\tau$ }.
+
+        We say $(Setup, Prove, Verify, Sim)$ is zero-knowledge if for all $(\mathbbm{x}, \mathbbm{w}) \in R$ and all non-uniform adversaries $\mathcal{A}$
+        \begin{align*}
+            & \Pr\left[ \begin{aligned}
+                (\sigma, \tau) \leftarrow Setup(R) \\
+                \pi \leftarrow Prove(R, \sigma, \mathbbm{x}, \mathbbm{w})
+            \end{aligned}: \mathcal{A}(R, \sigma, \tau, \pi) = 1 \right] \\
+            \approx & \Pr\left[ \begin{aligned}
+                (\sigma, \tau) \leftarrow Setup(R) \\
+                \pi \leftarrow Sim(R, \tau, \mathbbm{x})
+            \end{aligned}: \mathcal{A}(R, \sigma, {\color{red}\tau}, \pi) = 1 \right]
+        \end{align*}
+    \end{definition}
+    This definition can only be used in trusted setup SNARKs.
+\end{frame}
+
+\begin{frame}
+    \frametitle{Honest-Verifier Zero-Knowledge}
+
+    \begin{definition}[Honest-Verifier Zero-Knowledge, Bulletproofs]
+        A {\color{red}public coin} argument of knowledge $(Setup, \mathcal{P}, \mathcal{V})$ is an HVZK argument of knowledge for $\mathcal{R}$ if there exists a PPT simulator $\mathcal{S}$ such that for all pairs of non-uniform interactive adversaries $\mathcal{A}_1, \mathcal{A}_2$
+        \begin{align*}
+            & \Pr\left[ \begin{aligned}
+                (pp, vp) \leftarrow Setup(R), \\
+                (x, w,\rho) \leftarrow \mathcal{A}_2(pp, vp) \\
+                tr \leftarrow \langle \mathcal{P}(pp, x, w), \mathcal{V}(vp, x, \rho) \rangle
+            \end{aligned}: \begin{aligned}
+                (u, w) \in \mathcal{R} \land \\
+                \mathcal{A}_1(tr) = 1
+            \end{aligned} \right] \\
+            \approx & \Pr\left[ \begin{aligned}
+                (pp, vp) \leftarrow Setup(R), \\
+                (x, w,\rho) \leftarrow \mathcal{A}_2(pp, vp) \\
+                tr \leftarrow \mathcal{S}(u, {\color{red}\rho})
+            \end{aligned}: \begin{aligned}
+                (u, w) \in \mathcal{R} \land \\
+                \mathcal{A}_1(tr) = 1 
+            \end{aligned} \right]
+        \end{align*}
+        where $\rho$ is the public coin randomness used by the verifier.
+    \end{definition}
+
+\end{frame}
+
+
+\end{document}
